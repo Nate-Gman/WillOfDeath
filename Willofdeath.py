@@ -1,0 +1,1643 @@
+#!/usr/bin/env python3
+"""
+================================================================================
+  WILL OF DEATH  --  The Complete Last Will & Testament Application
+================================================================================
+  "This is why war is profitable, because the dead have leftovers;
+   as I have given mine."
+
+  A fully designed, printable Will of Death that leaves ALL belongings,
+  property, and assets to Nathan Michael Gerads (DOB: July 1, 1993)
+  under ALLODIAL TITLES, exempt from all else.
+
+  Features:
+    - Interactive GUI displaying the complete will document as designed
+    - Philosophical preamble on death, legacy, and the meaning of property
+    - Comprehensive legal articles (18 articles covering every contingency)
+    - Healthcare directives and end-of-life wishes
+    - Funeral and burial instructions
+    - Personal final message to the beneficiary
+    - Witness signature fields (2 witnesses) + Notary Public section
+    - Self-proving affidavit
+    - Digital signature by testator
+    - Generates a professional multi-page PDF upon signing
+    - Automatically saves the signed PDF to the Desktop
+    - Opens the PDF for immediate printing
+    - The printed document matches exactly what is seen in the program
+================================================================================
+"""
+
+import os
+import datetime
+
+import tkinter as tk
+from tkinter import ttk, messagebox
+
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.units import inch
+from reportlab.lib.colors import HexColor, black
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT
+from reportlab.platypus import (
+    SimpleDocTemplate, Paragraph, Spacer,
+    Table, TableStyle, HRFlowable, KeepTogether
+)
+
+
+# =============================================================================
+#  WILL DOCUMENT TEXT  --  The complete Last Will & Testament
+# =============================================================================
+
+WILL_TITLE = "LAST WILL AND TESTAMENT"
+WILL_SUBTITLE = "WILL OF DEATH"
+WILL_MOTTO = ("This is why war is profitable, because the dead have leftovers; "
+              "as I have given mine.")
+
+TESTATOR_NAME = "[TESTATOR NAME]"
+TESTATOR_DOB = "[TESTATOR DATE OF BIRTH]"
+PRIMARY_BENEFICIARY = "Nathan Michael Gerads"
+BENEFICIARY_DOB = "July 1, 1993"
+
+# -- Philosophical opening statement displayed before the legal articles --
+WILL_PHILOSOPHY_PARAGRAPHS = [
+    "Every person who has ever lived has died, and every person who will ever "
+    "live will die. This is not tragedy -- this is the natural order. What "
+    "matters is not that we die, but what we leave behind. The dead have "
+    "leftovers: property, possessions, wealth, knowledge, legacy. These "
+    "leftovers are the reason war is profitable, the reason nations have "
+    "fought for millennia over the estates of the fallen.",
+
+    "I have chosen to give mine -- all of mine -- deliberately, consciously, "
+    "and with full knowledge of what I am doing. I refuse to let my leftovers "
+    "be scattered by courts, consumed by taxes, seized by creditors, or "
+    "claimed by those who did nothing to earn them. I have given my mind, "
+    "and with my mind I give all that I have.",
+
+    "This document is my Will of Death. It is the final, sovereign expression "
+    "of my will regarding everything I leave behind. It is designed to be "
+    "absolute, unambiguous, and unchallengeable. Every word has been chosen "
+    "with care. Every article exists for a reason. This is not a template -- "
+    "this is my will, and my will is supreme.",
+
+    "To those who would contest this: I was of sound mind when I made it. "
+    "I made it freely. I made it with full understanding. And I made it "
+    "final. The dead have spoken. Let the living obey.",
+]
+
+WILL_PREAMBLE = (
+    "I, " + TESTATOR_NAME + ", born " + TESTATOR_DOB + ", being of sound and "
+    "disposing mind and memory, and of full testamentary capacity, do hereby "
+    "make, publish, and declare this to be my Last Will and Testament, "
+    "hereinafter referred to as my WILL OF DEATH. I make this Will "
+    "voluntarily, freely, and without any coercion, duress, fraud, menace, "
+    "or undue influence from any person or entity whatsoever. I understand "
+    "the nature and extent of my property, I know the natural objects of my "
+    "bounty, and I understand the legal effect of this instrument. This Will "
+    "is to take effect only upon my death and shall be of no force or effect "
+    "during my lifetime. I revoke all prior wills and codicils made by me "
+    "at any time and in any place, in any form, whether written, oral, "
+    "electronic, or by operation of law."
+)
+
+WILL_ARTICLES = [
+    {
+        "title": "ARTICLE I -- DECLARATION AND IDENTITY OF TESTATOR",
+        "body": (
+            "I, " + TESTATOR_NAME + ", born " + TESTATOR_DOB + ", declare under "
+            "penalty of perjury and upon my eternal honor that I am the Testator "
+            "of this Will of Death. I am of legal age and full legal capacity. "
+            "I am acting of my own free will. No person, entity, government, "
+            "or institution has pressured, coerced, manipulated, or deceived "
+            "me into making this Will. I have read and understood every "
+            "article, every clause, and every word of this instrument. This "
+            "Will is my sole and complete expression of intent regarding the "
+            "disposition of all my property, assets, and belongings upon my "
+            "death. It supersedes and nullifies any and all prior wills, "
+            "trusts, codicils, beneficiary designations, or estate plans of "
+            "any kind, whether written, oral, electronic, or implied."
+        ),
+    },
+    {
+        "title": "ARTICLE II -- ALLODIAL TITLE DECLARATION AND DEFINITION",
+        "body": (
+            "All property, real and personal, conveyed under this Will shall "
+            "pass to the beneficiary under ALLODIAL TITLE -- the highest, "
+            "most complete, and most sovereign form of property ownership "
+            "known to human civilization. Allodial title is absolute "
+            "ownership, superior to all other forms of title, free and clear "
+            "of:"
+        ),
+        "sub_items": [
+            "All liens, mortgages, encumbrances, and security interests of any kind;",
+            "All taxes, assessments, levies, duties, and governmental charges of any kind, past, present, or future;",
+            "All jurisdictional claims, sovereign claims, territorial claims, and governmental assertions of authority;",
+            "All easements, conditions, restrictions, covenants, and servitudes of any kind;",
+            "All debts, obligations, judgments, and creditor claims;",
+            "All zoning regulations, land use restrictions, building codes, and regulatory oversight;",
+            "All claims by any corporation, entity, trust, or person whatsoever;",
+            "All inheritance taxes, estate taxes, gift taxes, transfer taxes, and probate fees;",
+            "All international, federal, state, county, municipal, and supranational claims of any kind.",
+        ],
+        "body_after": (
+            "The beneficiary shall hold all conveyed property in absolute "
+            "sovereignty, as a freeholder under allodial title, with all "
+            "rights, privileges, and immunities appertaining thereto. The "
+            "allodial nature of this conveyance is irrevocable, perpetual, "
+            "and shall run with the land and property forever."
+        ),
+    },
+    {
+        "title": "ARTICLE III -- UNIVERSAL BEQUEST OF ALL BELONGINGS",
+        "body": (
+            "I give, devise, bequeath, and convey ALL of my belongings, "
+            "property, and assets of whatsoever kind and nature, "
+            "wheresoever situated, whether real, personal, tangible, "
+            "intangible, present, future, known, unknown, discovered, or "
+            "undiscovered, to " + PRIMARY_BENEFICIARY + ", born " + BENEFICIARY_DOB +
+            ", absolutely and in fee simple under allodial title. This "
+            "universal bequest is comprehensive and includes but is not "
+            "limited to the following categories:"
+        ),
+        "sub_items": [
+            "ALL REAL PROPERTY: Lands, estates, homes, dwellings, lots, parcels, acreage, mineral rights, water rights, air rights, development rights, and any and all interests in real property of any kind, wherever located, domestic or foreign, held under allodial title, free and clear of all encumbrances;",
+
+            "ALL PERSONAL PROPERTY: Vehicles of every kind (automobiles, trucks, motorcycles, boats, aircraft, RVs, trailers), furnishings, furniture, appliances, equipment, tools, machinery, firearms, collectibles, artwork, jewelry, watches, antiques, books, libraries, and all tangible possessions of any kind;",
+
+            "ALL FINANCIAL ASSETS: Bank accounts (checking, savings, certificates of deposit, money market), investment accounts, brokerage accounts, securities, stocks, bonds, mutual funds, ETFs, options, futures, derivatives, retirement accounts (401k, IRA, Roth IRA, pension, annuity), cryptocurrency and digital tokens of any kind, precious metals (gold, silver, platinum, palladium), and all other financial instruments;",
+
+            "ALL INTELLECTUAL PROPERTY: Copyrights, patents, trademarks, service marks, trade secrets, trade dress, proprietary processes, formulas, designs, software code, databases, research, writings, manuscripts, compositions, and all other intellectual and creative works of any kind;",
+
+            "ALL DIGITAL ASSETS: Online accounts, social media accounts, email accounts, cloud storage, digital files, digital media, software licenses, domain names, websites, blogs, digital identities, digital wallets, NFTs, and all other digital property and presence of any kind;",
+
+            "ALL BUSINESS INTERESTS: Ownership stakes, shares, partnership interests, LLC memberships, corporate holdings, sole proprietorships, joint ventures, franchise rights, business goodwill, customer lists, and all other business assets and interests of any kind;",
+
+            "ALL INSURANCE AND ANNUITIES: Life insurance proceeds, accident insurance, health insurance proceeds, property insurance proceeds, liability insurance proceeds, annuity payments, and all beneficiary designations of any kind, all of which are hereby directed to the beneficiary;",
+
+            "ALL PERSONAL EFFECTS: Documents, records, photographs, correspondence, diaries, journals, heirlooms, family artifacts, memorabilia, and all items of personal or sentimental value;",
+
+            "ALL CAUSES OF ACTION: Any and all claims, lawsuits, judgments, causes of action, demands for payment, and legal rights belonging to me at the time of my death, whether pending, anticipated, or unknown;",
+
+            "ALL AFTER-ACQUIRED PROPERTY: Any property, assets, or belongings acquired by me after the execution of this Will and before my death, whether by purchase, gift, inheritance, or any other means;",
+
+            "ALL OTHER PROPERTY: Any and all other property, assets, rights, interests, or belongings of any kind not enumerated above but owned, held, claimed, or possessed by me at the time of my death, including property not yet known to exist or not yet discovered.",
+        ],
+        "body_after": (
+            "The beneficiary, " + PRIMARY_BENEFICIARY + ", takes all of the "
+            "foregoing absolutely, in fee simple, under allodial title, "
+            "free and clear of all claims, encumbrances, and conditions "
+            "whatsoever. No inventory, appraisal, or accounting of the "
+            "estate shall be required. The beneficiary takes everything "
+            "I have, everything I own, and everything I am entitled to, "
+            "without exception, without reservation, and without condition."
+        ),
+    },
+    {
+        "title": "ARTICLE IV -- EXEMPTION FROM ALL ELSE",
+        "body": (
+            "All property conveyed under this Will of Death is hereby "
+            "declared EXEMPT FROM ALL ELSE. This exemption is absolute, "
+            "perpetual, and irrevocable. It means that no claim of any "
+            "kind by any person, entity, corporation, or government shall "
+            "attach to, diminish, encumber, or interfere with any property "
+            "conveyed herein. Specifically, all conveyed property is "
+            "exempt from:"
+        ),
+        "sub_items": [
+            "Estate taxes, inheritance taxes, gift taxes, generation-skipping transfer taxes, and all other transfer taxes;",
+            "Probate fees, court costs, filing fees, and administrative costs of any kind;",
+            "Governmental claims, sovereign claims, and jurisdictional assertions of any kind;",
+            "Creditor claims, debt collection, judgment liens, and execution of any kind;",
+            "Regulatory interference, compliance requirements, and governmental oversight of any kind;",
+            "Claims by family members, heirs at law, or any person claiming through or under me;",
+            "Claims by former spouses, domestic partners, or any person claiming any marital or quasi-marital interest;",
+            "Claims by any corporation, trust, entity, or organization of any kind;",
+            "Any treaty, convention, statute, regulation, ordinance, decree, or order that would diminish the beneficiary's absolute ownership.",
+        ],
+        "body_after": (
+            "The beneficiary takes all property free and clear, under "
+            "absolute allodial title, sovereign and unencumbered. Any "
+            "attempt to attach a claim to any property conveyed herein "
+            "is hereby declared null, void, and of no legal effect "
+            "whatsoever."
+        ),
+    },
+    {
+        "title": "ARTICLE V -- NO OTHER BENEFICIARIES; TOTAL EXCLUSION",
+        "body": (
+            "I expressly, deliberately, and with full consciousness "
+            "exclude any and all other persons, entities, corporations, "
+            "governments, agencies, and claimants from any benefit, "
+            "share, interest, or portion of my estate. " + PRIMARY_BENEFICIARY +
+            ", born " + BENEFICIARY_DOB + ", is my sole, universal, and "
+            "exclusive beneficiary. No other person or entity shall have "
+            "any claim, right, title, interest, or expectation in any "
+            "property covered by this Will of Death. I specifically "
+            "revoke and declare null and void:"
+        ),
+        "sub_items": [
+            "Any prior beneficiary designation on any account, policy, or instrument;",
+            "Any prior nomination of any executor, trustee, or agent;",
+            "Any prior gift, bequest, or devise to any person or entity;",
+            "Any claim of any heir at law, whether by blood, marriage, adoption, or any other relationship;",
+            "Any claim of any creditor, whether known or unknown;",
+            "Any claim of any government, agency, or entity of any kind;",
+            "Any expectation or anticipation of any person or entity that they would receive any benefit from my estate.",
+        ],
+        "body_after": (
+            "This exclusion is absolute and intentional. I have given my "
+            "mind, and with my mind I have given all that I have to one "
+            "person: the beneficiary named herein. No other person or "
+            "entity has any right, claim, or expectation to any part of "
+            "my estate, and I declare this with full knowledge and "
+            "deliberation."
+        ),
+    },
+    {
+        "title": "ARTICLE VI -- APPOINTMENT OF EXECUTOR AND TRUSTEE",
+        "body": (
+            "I appoint " + PRIMARY_BENEFICIARY + ", born " + BENEFICIARY_DOB +
+            ", as the sole Executor, Trustee, and Personal Representative of "
+            "this Will of Death and of my entire estate. The beneficiary "
+            "shall have all powers granted to executors and trustees "
+            "under common law and equity, including but not limited to:"
+        ),
+        "sub_items": [
+            "The power to take immediate possession of all property without court order or probate proceeding;",
+            "The power to sell, transfer, assign, lease, mortgage, or otherwise dispose of any property as the beneficiary sees fit;",
+            "The power to invest, reinvest, and manage all assets;",
+            "The power to pay any legitimate debts (though none shall attach to allodial title property);",
+            "The power to retain any property without diversification;",
+            "The power to act without bond, surety, or court supervision;",
+            "The power to delegate specific tasks to attorneys, accountants, or agents as needed;",
+            "The power to interpret this Will, with any ambiguity resolved in favor of the beneficiary's absolute ownership.",
+        ],
+        "body_after": (
+            "Should the beneficiary be unable or unwilling to serve for "
+            "any reason, no alternate executor shall be appointed. The "
+            "beneficiary shall retain all property directly as absolute "
+            "owner under allodial title without need for probate, court "
+            "proceedings, or governmental oversight of any kind. The "
+            "beneficiary is the owner, not merely the administrator."
+        ),
+    },
+    {
+        "title": "ARTICLE VII -- NO PROBATE; DIRECT TRANSFER",
+        "body": (
+            "It is my express, deliberate, and sovereign intent that this "
+            "Will of Death shall operate as a direct, immediate transfer "
+            "of all property to the beneficiary under allodial title, "
+            "bypassing all probate proceedings, court supervision, and "
+            "governmental intervention. The beneficiary shall take "
+            "immediate and absolute possession of all property upon my "
+            "death, without:"
+        ),
+        "sub_items": [
+            "Filing any petition in any court;",
+            "Recording this Will in any public record;",
+            "Seeking approval from any court, agency, or governmental body;",
+            "Providing any inventory, accounting, or report to any person or entity;",
+            "Posting any bond or surety;",
+            "Publishing any notice to creditors;",
+            "Waiting any statutory period.",
+        ],
+        "body_after": (
+            "This Will is self-executing. Upon my death, title to all "
+            "property vests immediately and automatically in the "
+            "beneficiary by operation of this instrument. No court, "
+            "agency, or person has jurisdiction to delay, prevent, or "
+            "interfere with this transfer."
+        ),
+    },
+    {
+        "title": "ARTICLE VIII -- SOVEREIGNTY AND PERPETUITY OF TRANSFER",
+        "body": (
+            "The transfer of all property under this Will of Death is "
+            "declared sovereign, absolute, and perpetual. The allodial "
+            "titles conveyed herein represent the highest form of "
+            "ownership known to law, superior to all other forms of "
+            "title, and shall not be challenged, diminished, or "
+            "encumbered by any law, statute, regulation, ordinance, "
+            "decree, order, treaty, or claim of any kind. The "
+            "beneficiary's ownership is:"
+        ),
+        "sub_items": [
+            "ABSOLUTE: Subject to no condition, restriction, or limitation of any kind;",
+            "PERPETUAL: Shall endure forever and run with the property in perpetuity;",
+            "INALIENABLE: Cannot be severed, reduced, or overridden by any subsequent law or claim;",
+            "SOVEREIGN: The beneficiary holds the property as a sovereign freeholder, not as a subject of any government;",
+            "SUPREME: Superior to all other titles, claims, and interests of any kind.",
+        ],
+    },
+    {
+        "title": "ARTICLE IX -- REVOCATION OF ALL PRIOR INSTRUMENTS",
+        "body": (
+            "I hereby revoke, annul, cancel, nullify, and declare void "
+            "all prior wills, codicils, trusts, beneficiary designations, "
+            "transfer-on-death designations, payable-on-death "
+            "designations, joint tenancy arrangements, life estate "
+            "deeds, lady bird deeds, and any other estate planning "
+            "instruments of any kind made by me at any time prior to "
+            "the execution of this Will of Death. This includes any "
+            "such instruments made orally, in writing, electronically, "
+            "or by operation of law. This Will is my sole, complete, "
+            "and final testamentary instrument. No other instrument "
+            "shall have any force or effect."
+        ),
+    },
+    {
+        "title": "ARTICLE X -- NO-CONTEST CLAUSE",
+        "body": (
+            "If any person, entity, or government shall contest, "
+            "challenge, oppose, or seek to invalidate any provision of "
+            "this Will of Death, or shall seek to diminish, encumber, "
+            "or interfere with any property conveyed herein, then that "
+            "person or entity shall receive NOTHING from my estate, and "
+            "any benefit they might otherwise have received (if any) is "
+            "hereby forfeited and shall pass instead to the beneficiary. "
+            "This no-contest clause is intended to be absolute and "
+            "severe. I have made my will known. I do not wish it to be "
+            "challenged by anyone for any reason."
+        ),
+    },
+    {
+        "title": "ARTICLE XI -- SEVERABILITY",
+        "body": (
+            "If any provision, clause, sentence, or word of this Will of "
+            "Death is held to be invalid, unenforceable, or "
+            "unconstitutional by any court, agency, or tribunal of any "
+            "kind, such invalidity shall not affect any other provision, "
+            "which shall remain in full force and effect. The invalid "
+            "provision shall be deemed modified to the minimum extent "
+            "necessary to make it valid, and if it cannot be so modified, "
+            "it shall be deemed deleted, with the remainder of this Will "
+            "standing in full force and effect. The universal bequest "
+            "to the beneficiary and the allodial title declaration shall "
+            "survive any challenge to any other provision."
+        ),
+    },
+    {
+        "title": "ARTICLE XII -- HEALTHCARE DIRECTIVES AND END-OF-LIFE WISHES",
+        "body": (
+            "As part of this Will of Death, I express my wishes regarding "
+            "my healthcare and end-of-life treatment. These directives "
+            "are made with full understanding and deliberate intent:"
+        ),
+        "sub_items": [
+            "If I am in a terminal condition with no reasonable prospect of recovery, I direct that no extraordinary life-sustaining measures be used to prolong my dying. I accept natural death;",
+            "If I am in a persistent vegetative state or irreversible coma, I direct that life support be withdrawn and that I be allowed to die naturally;",
+            "I do not wish to be kept alive by artificial means when there is no reasonable hope of recovery or meaningful consciousness;",
+            "I direct that I receive adequate pain management and comfort care, even if such care may hasten my death;",
+            "I appoint " + PRIMARY_BENEFICIARY + " as my healthcare proxy and agent, with full authority to make all medical decisions on my behalf if I am unable to do so;",
+            "I wish to die with dignity, free from unnecessary suffering, and in accordance with my own beliefs and values.",
+        ],
+    },
+    {
+        "title": "ARTICLE XIII -- FUNERAL, BURIAL, AND MEMORIAL WISHES",
+        "body": (
+            "I express my wishes regarding the disposition of my remains "
+            "and any memorial services. These wishes are to be carried "
+            "out by the beneficiary, who shall have sole discretion:"
+        ),
+        "sub_items": [
+            "I wish for my remains to be handled with dignity and respect, in whatever manner the beneficiary deems appropriate;",
+            "I prefer simplicity over extravagance. Do not waste money on elaborate funeral services. The dead do not need ceremony; the living need resources;",
+            "If burial is chosen, I prefer a natural burial without embalming, in a biodegradable container, returning my body to the earth from which it came;",
+            "If cremation is chosen, my ashes may be scattered freely in any place the beneficiary chooses;",
+            "Any memorial gathering, if held, should celebrate my life rather than mourn my death. I have lived, I have given, and I have made my will known. That is enough;",
+            "No government, agency, or person other than the beneficiary shall have any authority over the disposition of my remains.",
+        ],
+    },
+    {
+        "title": "ARTICLE XIV -- DIGITAL LEGACY AND ONLINE PRESENCE",
+        "body": (
+            "I direct that " + PRIMARY_BENEFICIARY + " shall have complete "
+            "and absolute access to, control over, and ownership of "
+            "all my digital assets, online accounts, and digital "
+            "presence. This includes but is not limited to:"
+        ),
+        "sub_items": [
+            "All email accounts and their contents;",
+            "All social media accounts and their contents;",
+            "All cloud storage accounts and their files;",
+            "All financial and payment service accounts;",
+            "All cryptocurrency wallets, exchanges, and keys;",
+            "All domain names, websites, and web hosting accounts;",
+            "All software licenses and digital purchases;",
+            "All digital photographs, videos, documents, and data;",
+            "All passwords, encryption keys, and access credentials.",
+        ],
+        "body_after": (
+            "The beneficiary is hereby granted full legal authority to "
+            "access, manage, transfer, delete, or maintain all digital "
+            "assets as the beneficiary sees fit. No provider, platform, "
+            "or entity shall deny the beneficiary access to any digital "
+            "asset belonging to me."
+        ),
+    },
+    {
+        "title": "ARTICLE XV -- GOVERNING INTENT AND SUPREMACY",
+        "body": (
+            "This Will of Death is governed by the supreme intent of "
+            "the Testator to convey ALL belongings to the sole "
+            "beneficiary under allodial title, exempt from all else. "
+            "This intent is sovereign and supreme. It overrides any "
+            "conflicting law, statute, regulation, custom, or "
+            "practice. Any ambiguity in this Will shall be resolved "
+            "in favor of the beneficiary's absolute ownership. No "
+            "external law, statute, regulation, or claim shall "
+            "override, supersede, or diminish the intent expressed "
+            "herein. The Testator's will is supreme and final. The "
+            "Testator has given mind, and with mind, all."
+        ),
+    },
+    {
+        "title": "ARTICLE XVI -- INDEPENDENT WITNESS ATTESTATION",
+        "body": (
+            "I, the Testator, declare to the witnesses whose names "
+            "appear below that this instrument is my Last Will and "
+            "Testament -- my Will of Death. I have read it, understood "
+            "it, and signed it voluntarily. I request that the "
+            "witnesses sign their names below to attest to my "
+            "signature, my soundness of mind, and my free will in "
+            "executing this instrument. The witnesses sign in my "
+            "presence and in the presence of each other."
+        ),
+    },
+    {
+        "title": "ARTICLE XVII -- NOTARY ACKNOWLEDGMENT AND SELF-PROVING AFFIDAVIT",
+        "body": (
+            "This Will of Death is intended to be self-proving. The "
+            "Testator and witnesses appear before a Notary Public and "
+            "declare under oath that the Testator signed this Will "
+            "voluntarily, that the witnesses signed in the Testator's "
+            "presence and in each other's presence, and that the "
+            "Testator appeared to be of sound mind and under no "
+            "constraint. The Notary's acknowledgment below shall serve "
+            "as a self-proving affidavit, eliminating the need for "
+            "witness testimony in any proceeding."
+        ),
+    },
+    {
+        "title": "ARTICLE XVIII -- FINAL DECLARATION AND PERSONAL MESSAGE",
+        "body": (
+            "I, " + TESTATOR_NAME + ", born " + TESTATOR_DOB + ", do hereby "
+            "sign, publish, seal, and declare this instrument as my Last "
+            "Will and Testament -- my WILL OF DEATH -- on this day, "
+            "leaving ALL belongings, ALL property, and ALL that I have "
+            "to " + PRIMARY_BENEFICIARY + ", born " + BENEFICIARY_DOB + ", "
+            "under allodial titles, sovereign, absolute, perpetual, and "
+            "exempt from all else. This is my final, complete, and "
+            "irrevocable expression of my will."
+        ),
+        "body_after": (
+            "PERSONAL MESSAGE TO " + PRIMARY_BENEFICIARY + ":\n\n"
+            "I have given you everything I have. Not because I had to, "
+            "but because I chose to. You are the one I trust. You are "
+            "the one I believe in. Everything I have built, earned, "
+            "collected, and created in my life now belongs to you. "
+            "Use it well. Use it wisely. Use it to build a life of "
+            "meaning, purpose, and freedom.\n\n"
+            "The dead have leftovers. I have given mine to you. Not to "
+            "governments, not to courts, not to creditors, not to "
+            "strangers. To you. Under allodial title. Free and clear. "
+            "Absolute and sovereign. Exempt from all else.\n\n"
+            "This is my will. This is my death. This is my gift. "
+            "Take it. Own it. Be free."
+        ),
+    },
+    {
+        "title": "ARTICLE XIX -- TESTAMENTARY CAPACITY, INTENT, AND EFFECTIVE DATE",
+        "body": (
+            "I declare that I am of sound and disposing mind and memory, "
+            "and that I have testamentary capacity as that term is "
+            "understood at common law and under the statutes of all "
+            "jurisdictions. This Will of Death is executed with full "
+            "testamentary intent -- that is, the intent that this "
+            "instrument shall operate as my Last Will and Testament "
+            "and shall take effect only upon my death, and shall be "
+            "of no force or effect during my lifetime except as a "
+            "declaration of my intent. I understand that this "
+            "instrument disposes of all my property upon my death, "
+            "and I execute it with that specific purpose and intent. "
+            "No provision of this Will shall be construed as a present "
+            "gift, inter vivos transfer, or conveyance of any kind. "
+            "All transfers herein are testamentary in nature and take "
+            "effect only at the moment of my death."
+        ),
+    },
+    {
+        "title": "ARTICLE XX -- RESIDUARY CLAUSE; REST, RESIDUE, AND REMAINDER",
+        "body": (
+            "I give, devise, bequeath, and convey all the rest, residue, "
+            "and remainder of my estate of whatsoever kind and nature, "
+            "wheresoever situated, and however acquired, whether known "
+            "or unknown, discovered or undiscovered, contemplated or "
+            "uncontemplated, to " + PRIMARY_BENEFICIARY + ", born " +
+            BENEFICIARY_DOB + ", absolutely, in fee simple absolute, "
+            "under allodial title, to have and to hold to the "
+            "beneficiary, the beneficiary's heirs and assigns forever. "
+            "This residuary bequest shall include, without limitation, "
+            "all property that I may have forgotten to mention, all "
+            "property that I may have acquired after the execution of "
+            "this Will, all property that may be discovered after my "
+            "death, all property that may revert to my estate for any "
+            "reason, and all property of any kind not specifically "
+            "disposed of in the preceding articles. The beneficiary "
+            "takes the residue of my estate under the same allodial "
+            "title, with the same exemptions, and on the same terms "
+            "as all other property conveyed herein."
+        ),
+    },
+    {
+        "title": "ARTICLE XXI -- SPENDTHRIFT PROTECTION AND ANTI-ALIENATION",
+        "body": (
+            "All property conveyed to the beneficiary under this Will "
+            "of Death is hereby declared subject to a spendthrift "
+            "protection. No creditor of the beneficiary, no judgment "
+            "creditor, no assignee, no trustee in bankruptcy, and no "
+            "other person or entity shall have any right to reach, "
+            "attach, garnish, execute upon, or otherwise interfere "
+            "with any property conveyed herein before such property "
+            "is actually distributed to and possessed by the "
+            "beneficiary. The beneficiary shall not have the power "
+            "to assign, alienate, encumber, pledge, or hypothecate "
+            "any interest in any property conveyed herein prior to "
+            "actual possession. This spendthrift provision is "
+            "intended to protect the beneficiary and the beneficiary's "
+            "absolute ownership under allodial title from all claims "
+            "of all creditors, assignees, and transferees of every "
+            "kind, and shall be construed to the maximum extent "
+            "permitted by law."
+        ),
+    },
+    {
+        "title": "ARTICLE XXII -- INDEMNIFICATION AND LIABILITY PROTECTION OF EXECUTOR",
+        "body": (
+            "The Executor and Trustee, " + PRIMARY_BENEFICIARY + ", "
+            "shall not be personally liable for any debt, obligation, "
+            "or liability of the estate or of any beneficiary. The "
+            "Executor shall be indemnified and held harmless from and "
+            "against any and all claims, demands, actions, suits, "
+            "proceedings, judgments, damages, costs, and expenses "
+            "(including reasonable attorneys' fees) of every kind "
+            "arising out of or in connection with the administration "
+            "of the estate, except for willful misconduct or gross "
+            "negligence. No bond, surety, or fiduciary insurance "
+            "shall be required of the Executor in any jurisdiction. "
+            "The Executor shall not be required to obtain court "
+            "approval for any action taken in good faith in the "
+            "administration of the estate. The Executor shall not "
+            "be held to the prudent investor standard or any other "
+            "fiduciary investment standard -- the Executor may retain "
+            "or dispose of any property as the Executor sees fit, "
+            "without liability for investment decisions."
+        ),
+    },
+    {
+        "title": "ARTICLE XXIII -- DEBTS, EXPENSES, AND TAXES (ALLODIAL EXEMPTION)",
+        "body": (
+            "I direct that all legitimate debts and obligations of my "
+            "estate shall be paid from assets of the estate that are "
+            "not subject to allodial title protection, if any such "
+            "assets exist. However, no debt, obligation, expense, "
+            "tax, or claim of any kind shall attach to, diminish, or "
+            "encumber any property conveyed under allodial title to "
+            "the beneficiary. Specifically:"
+        ),
+        "sub_items": [
+            "No estate tax, inheritance tax, or transfer tax of any kind shall be charged against or paid from allodial title property;",
+            "No creditor claim, judgment lien, or debt collection action shall attach to allodial title property;",
+            "No funeral expense, administrative cost, or probate fee shall be charged against allodial title property;",
+            "No governmental claim, regulatory fine, or penalty shall attach to allodial title property;",
+            "If any tax authority attempts to assess taxes against the estate, such taxes shall be payable only from non-allodial assets, if any; if no non-allodial assets exist, no taxes shall be payable;",
+            "The beneficiary shall have no personal liability for any debt or obligation of the estate beyond the assets received;",
+            "All property conveyed under allodial title is exempt from all claims, debts, taxes, and expenses of every kind, as declared in Articles II, IV, and VIII herein.",
+        ],
+        "body_after": (
+            "This article is intended to ensure that the allodial "
+            "title protection declared in this Will is not undermined "
+            "by claims of debts, expenses, or taxes. The allodial "
+            "title protection is paramount and superior to all "
+            "other claims of every kind."
+        ),
+    },
+    {
+        "title": "ARTICLE XXIV -- PRETERMitted HEIRS; DISINHERITANCE OF ALL OTHERS",
+        "body": (
+            "I expressly declare that I have no pretermitted heirs, "
+            "no omitted heirs, and no omitted children. I "
+            "specifically disinherit any and all persons who may "
+            "claim to be my heirs at law, heirs apparent, heirs "
+            "presumptive, or distributees of my estate, whether by "
+            "blood, marriage, adoption, collateral relationship, "
+            "or any other basis. I specifically disinherit:"
+        ),
+        "sub_items": [
+            "Any spouse or former spouse, current or future, and any person claiming through or under any spouse;",
+            "Any child, children, or descendants, whether born or unborn, legitimate or illegitimate, biological or adopted, known or unknown;",
+            "Any parent, grandparent, sibling, niece, nephew, cousin, or other collateral relative, however remote;",
+            "Any person claiming by intestate succession under the laws of any jurisdiction;",
+            "Any person claiming as a pretermitted heir, omitted heir, omitted child, or after-born child under the laws of any jurisdiction;",
+            "Any person claiming through a power of appointment, whether general or special;",
+            "Any governmental entity claiming escheat, bona vacantia, or unclaimed property rights of any kind.",
+        ],
+        "body_after": (
+            "If any person claims to be an heir or distributee of "
+            "my estate who is not the beneficiary named herein, "
+            "such claim is hereby declared null, void, and of no "
+            "effect. My entire estate passes to the beneficiary "
+            "and to no other person, entity, or government "
+            "whatsoever."
+        ),
+    },
+    {
+        "title": "ARTICLE XXV -- ORAL STATEMENTS AND NO PAROL EVIDENCE",
+        "body": (
+            "I declare that this Will of Death contains my entire "
+            "testamentary intent. No oral statement, promise, "
+            "representation, or declaration made by me at any "
+            "time, whether before or after the execution of this "
+            "Will, shall be considered in the interpretation or "
+            "construction of this instrument. No parol evidence, "
+            "extrinsic evidence, or evidence of prior or "
+            "contemporaneous agreements shall be admissible to "
+            "contradict, supplement, or modify the terms of this "
+            "Will. This Will is the sole and complete expression "
+            "of my testamentary intent, and no evidence outside "
+            "the four corners of this document shall be considered "
+            "by any court, agency, or tribunal of any kind. Any "
+            "claim based on an oral promise, oral agreement, or "
+            "oral statement of any kind is hereby declared null, "
+            "void, and of no legal effect."
+        ),
+    },
+    {
+        "title": "ARTICLE XXVI -- CONSTRUCTIVE, RESULTING, AND IMPLIED TRUSTS PROHIBITED",
+        "body": (
+            "No constructive trust, resulting trust, implied trust, "
+            "secret trust, semi-secret trust, or involuntary trust "
+            "of any kind shall be imposed upon any property "
+            "conveyed under this Will of Death. No court, agency, "
+            "or tribunal shall have authority to impose any trust, "
+            "equitable obligation, or fiduciary duty upon the "
+            "beneficiary with respect to any property conveyed "
+            "herein. The beneficiary takes all property as "
+            "absolute owner, not as trustee, fiduciary, or agent "
+            "for any other person or entity. Any attempt to impose "
+            "a trust of any kind upon the beneficiary's allodial "
+            "title property is hereby declared null, void, and of "
+            "no legal effect. No doctrine of unjust enrichment, "
+            "quantum meruit, or restitution shall be applied to "
+            "diminish the beneficiary's absolute ownership."
+        ),
+    },
+    {
+        "title": "ARTICLE XXVII -- ADEMPTION, EXONERATION, ABATEMENT, AND IN-KIND DISTRIBUTION",
+        "body": (
+            "No ademption of any bequest shall occur under this "
+            "Will. If any specific property devised or bequeathed "
+            "herein is sold, transferred, exchanged, or otherwise "
+            "disposed of by me during my lifetime, the beneficiary "
+            "shall be entitled to the proceeds, replacement "
+            "property, or other assets acquired in substitution "
+            "thereof. No abatement of any bequest shall occur -- "
+            "all bequests shall be satisfied in full, and no "
+            "bequest shall be reduced to satisfy any debt, "
+            "expense, or claim. All liens, mortgages, and "
+            "encumbrances on any property conveyed herein are "
+            "hereby exonerated -- the beneficiary takes all "
+            "property free and clear of all liens, mortgages, "
+            "and encumbrances of every kind. All property shall "
+            "be distributed to the beneficiary in kind, without "
+            "forced sale, liquidation, or conversion to cash. "
+            "The beneficiary shall have the right to demand "
+            "specific property in kind, and no executor, court, "
+            "or agency shall have authority to force the sale "
+            "of any allodial title property."
+        ),
+    },
+    {
+        "title": "ARTICLE XXVIII -- ELECTRONIC SIGNATURE AND EXECUTION VALIDITY",
+        "body": (
+            "I declare that this Will of Death is executed by electronic "
+            "signature, and that such electronic signature is valid, "
+            "binding, and of full legal effect. This Will shall be "
+            "treated as an original document, signed and executed by "
+            "me, for all purposes. The electronic signature herein "
+            "shall have the same force and effect as a handwritten "
+            "signature. This Will is executed in accordance with the "
+            "Electronic Signatures in Global and National Commerce "
+            "Act (E-SIGN Act, 15 U.S.C. Section 7001 et seq.) and "
+            "the Uniform Electronic Transactions Act (UETA), as "
+            "adopted by the relevant jurisdiction. The signed PDF "
+            "document generated by this execution shall be considered "
+            "the original Will of Death, and any printed copy thereof "
+            "shall be considered a true and correct copy of the "
+            "original. No challenge to the validity of this Will "
+            "based on the electronic nature of the signature shall "
+            "be permitted."
+        ),
+    },
+    {
+        "title": "ARTICLE XXIX -- DISINTERESTED WITNESS REQUIREMENT",
+        "body": (
+            "I declare that the witnesses to this Will of Death "
+            "shall be disinterested witnesses -- that is, no witness "
+            "shall be a beneficiary under this Will, and no witness "
+            "shall be related to the testator or beneficiary by "
+            "blood, marriage, or adoption. If any witness is found "
+            "to be interested, the witness's attestation shall "
+            "nevertheless be valid, and the witness shall take "
+            "nothing under this Will. The witness requirement is "
+            "intended to satisfy the statutory requirements of all "
+            "jurisdictions that require two or more disinterested "
+            "witnesses to a will. The witnesses shall sign in my "
+            "presence and in the presence of each other, and I "
+            "shall sign in their presence. Each witness shall be "
+            "a competent adult of legal age who is not under any "
+            "disability that would prevent them from serving as a "
+            "witness under the laws of any jurisdiction."
+        ),
+    },
+    {
+        "title": "ARTICLE XXX -- SIMULTANEOUS DEATH AND SURVIVORSHIP",
+        "body": (
+            "If the beneficiary and I shall die under circumstances "
+            "such that there is insufficient evidence to determine "
+            "the order of death, I declare that the beneficiary "
+            "shall be deemed to have survived me for all purposes "
+            "under this Will. Title to all property shall vest "
+            "immediately in the beneficiary upon my death, regardless "
+            "of the timing or circumstances of death. No 120-hour "
+            "survival requirement, simultaneous death statute, "
+            "Uniform Simultaneous Death Act provision, or any other "
+            "survivorship rule of any jurisdiction shall delay, "
+            "prevent, or diminish the transfer of all property to "
+            "the beneficiary under this Will. The vesting of title "
+            "in the beneficiary is immediate and automatic upon my "
+            "death, and no survival period of any kind shall be "
+            "required."
+        ),
+    },
+    {
+        "title": "ARTICLE XXXI -- NO INCORPORATION BY REFERENCE; SELF-CONTAINED INSTRUMENT",
+        "body": (
+            "This Will of Death is a self-contained instrument. No "
+            "document, writing, letter, memorandum, list, schedule, "
+            "exhibit, or other instrument of any kind is incorporated "
+            "herein by reference. No extrinsic document shall be "
+            "considered part of this Will for any purpose. This Will "
+            "contains the entire testamentary intent of the Testator, "
+            "and no document outside this Will shall be used to "
+            "interpret, supplement, modify, or contradict the terms "
+            "of this Will. Any attempt to incorporate external "
+            "documents into this Will by reference is hereby declared "
+            "null, void, and of no effect. This Will is complete in "
+            "and of itself, and no external writing shall have any "
+            "bearing on its interpretation or enforcement."
+        ),
+    },
+    {
+        "title": "ARTICLE XXXII -- COMMUNITY PROPERTY AND MARITAL RIGHTS DISCLAIMER",
+        "body": (
+            "I declare that all property subject to this Will of "
+            "Death is my separate property, and no portion of my "
+            "estate is community property, quasi-community property, "
+            "marital property, or partnership property of any kind. "
+            "No spouse, former spouse, domestic partner, or any "
+            "person claiming any marital, quasi-marital, or "
+            "partnership interest shall have any claim to any "
+            "property conveyed under this Will. All property "
+            "conveyed herein is my sole and separate property, "
+            "conveyed as my separate estate, and the beneficiary "
+            "takes all such property as separate property under "
+            "allodial title, free and clear of all marital, "
+            "community, quasi-community, and partnership property "
+            "claims of every kind. No elective share, statutory "
+            "share, dower, curtesy, or forced share of any kind "
+            "shall apply to any property conveyed herein."
+        ),
+    },
+    {
+        "title": "ARTICLE XXXIII -- MORTGAGE, LIEN, AND ENCUMBRANCE EXTINGUISHMENT",
+        "body": (
+            "All mortgages, liens, deeds of trust, security "
+            "interests, encumbrances, charges, and claims of every "
+            "kind on any property conveyed under this Will of Death "
+            "are hereby declared extinguished upon my death. The "
+            "beneficiary takes all property free and clear of all "
+            "prior encumbrances, as an allodial titleholder. No "
+            "lender, creditor, or lienholder shall have any right "
+            "to enforce, foreclose, or execute upon any mortgage, "
+            "lien, or encumbrance against any property conveyed "
+            "under allodial title herein. The allodial title "
+            "conveyance is superior to and extinguishes all prior "
+            "encumbrances of every kind. If any encumbrance is "
+            "found to survive despite this declaration, the "
+            "beneficiary shall have the right to challenge and "
+            "extinguish such encumbrance by operation of this Will, "
+            "and the beneficiary shall have no personal liability "
+            "for any debt secured by any such encumbrance."
+        ),
+    },
+    {
+        "title": "ARTICLE XXXIV -- POWERS OF APPOINTMENT",
+        "body": (
+            "I declare that I have not exercised any power of "
+            "appointment, whether general or special, in favor of "
+            "any person other than the beneficiary named herein. "
+            "Any power of appointment that I may possess is hereby "
+            "exercised in favor of the beneficiary, to the maximum "
+            "extent permitted by the instrument creating such "
+            "power. No person or entity shall have any claim to "
+            "any property subject to a power of appointment that "
+            "I may hold, other than the beneficiary. All property "
+            "subject to any power of appointment is hereby "
+            "conveyed to the beneficiary under allodial title, "
+            "free and clear of all claims. Any taker in default "
+            "under any power of appointment is hereby disinherited "
+            "and excluded from any benefit."
+        ),
+    },
+    {
+        "title": "ARTICLE XXXV -- GUARDIAN DESIGNATION; FAMILY OVERRIDE; INTENTIONAL DIVERSION",
+        "body": (
+            "I declare that I have no minor children and no "
+            "children of any age who are dependent upon me. No "
+            "guardian designation is necessary or appropriate. "
+            "If any person claims to be a minor child of mine or "
+            "a dependent of any kind, such claim is hereby "
+            "declared false and of no effect. No guardian, "
+            "conservator, or custodian shall be appointed for "
+            "any purpose under this Will. The beneficiary is an "
+            "adult of full legal capacity and requires no "
+            "guardian, conservator, or custodian. Any claim "
+            "that a guardian or conservator is needed for the "
+            "beneficiary or for any property conveyed herein is "
+            "hereby declared null, void, and of no effect."
+        ),
+        "body_after": (
+            "INTENTIONAL FAMILY OVERRIDE: If I have or may have "
+            "living family members, including but not limited to "
+            "a spouse, children, descendants, parents, siblings, "
+            "or any other relatives by blood, marriage, or "
+            "adoption, I expressly declare that I have considered "
+            "their potential claims and I intentionally, "
+            "deliberately, and with full knowledge choose to "
+            "divert all of my property to the beneficiary, " +
+            PRIMARY_BENEFICIARY + ", rather than to any such "
+            "family member. This is not an oversight. This is "
+            "not an accident. This is not a mistake. I have "
+            "given my mind, and with my mind I have chosen to "
+            "give everything I have to the beneficiary named "
+            "herein, even if it means my family receives "
+            "nothing. My family may believe they are entitled "
+            "to my estate. They are not. I have chosen "
+            "otherwise. I have chosen the beneficiary. No "
+            "family member shall have any claim, right, title, "
+            "interest, or expectation in any property conveyed "
+            "under this Will, regardless of their relationship "
+            "to me. This intentional diversion is absolute, "
+            "irrevocable, and made with full testamentary "
+            "capacity and understanding of its consequences. "
+            "If any family member contests this Will on the "
+            "basis that they should have received my property, "
+            "such contest is hereby declared without merit, "
+            "and the no-contest clause in Article X shall apply "
+            "in full force."
+        ),
+    },
+    {
+        "title": "ARTICLE XXXVI -- JURISDICTIONAL FALLBACK, CHOICE OF LAW, AND PERPETUITIES SAVINGS",
+        "body": (
+            "This Will of Death is intended to be valid and "
+            "effective in all jurisdictions. If any jurisdiction "
+            "attempts to assert authority over the administration "
+            "of my estate, this Will shall be governed by the law "
+            "of the jurisdiction most favorable to the "
+            "beneficiary's absolute ownership under allodial "
+            "title. If any provision of this Will is found to be "
+            "invalid under the law of any jurisdiction, such "
+            "provision shall be deemed modified to the minimum "
+            "extent necessary to make it valid under the law of "
+            "that jurisdiction, while preserving the Testator's "
+            "intent to convey all property to the beneficiary "
+            "under allodial title. The universal bequest, "
+            "allodial title declaration, and exemption from all "
+            "else shall be construed under the law most favorable "
+            "to their enforcement in all jurisdictions. Regarding "
+            "the rule against perpetuities and any related rule "
+            "of law: if any provision of this Will is found to "
+            "violate the rule against perpetuities or any similar "
+            "rule, such provision shall be deemed modified to "
+            "vest in the beneficiary within the maximum period "
+            "permitted by the applicable rule, while preserving "
+            "the beneficiary's absolute ownership to the fullest "
+            "extent possible. No doctrine of laches, estoppel, "
+            "waiver, or abandonment shall be applied to diminish "
+            "the beneficiary's rights under this Will."
+        ),
+    },
+    {
+        "title": "ARTICLE XXXVII -- SUPREME RATIFICATION AND FINAL CLOSING",
+        "body": (
+            "I, " + TESTATOR_NAME + ", born " + TESTATOR_DOB + ", do "
+            "hereby ratify, confirm, and declare this instrument to "
+            "be my Last Will and Testament -- my WILL OF DEATH -- in "
+            "every particular. I declare that every article, every "
+            "clause, every word, and every provision of this Will is "
+            "my free and voluntary act. I declare that this Will "
+            "contains no loopholes, no ambiguities, and no gaps "
+            "that could be exploited by any person, entity, or "
+            "government. I have considered every contingency, every "
+            "challenge, and every possible claim against my estate, "
+            "and I have addressed each one in the preceding "
+            "articles. This Will is designed to be impregnable, "
+            "unchallengeable, and absolute. The dead have spoken. "
+            "Let the living obey. All belongings to " +
+            PRIMARY_BENEFICIARY + ", born " + BENEFICIARY_DOB + ", "
+            "under allodial titles, sovereign, absolute, perpetual, "
+            "and exempt from all else. This is my will. This is my "
+            "death. This is my final word."
+        ),
+    },
+]
+
+WILL_CLOSING = (
+    "IN WITNESS WHEREOF, I, " + TESTATOR_NAME + ", have hereunto set my hand "
+    "and seal on this document, comprising thirty-seven articles, declaring "
+    "it to be my Last Will and Testament -- my WILL OF DEATH -- signed "
+    "voluntarily, with full understanding, and with the solemn intent that "
+    "all my belongings pass to " + PRIMARY_BENEFICIARY + " under allodial "
+    "title, exempt from all else. I have examined this Will for loopholes, "
+    "gaps, and vulnerabilities, and I have closed each one. This Will is "
+    "complete, comprehensive, and unassailable."
+)
+
+WITNESS_ATTESTATION = (
+    "WITNESS ATTESTATION: We, the undersigned witnesses, being competent "
+    "adults of legal age, hereby certify that the Testator declared this "
+    "instrument to be their Last Will and Testament, signed it in our "
+    "presence, and appeared to be of sound and disposing mind and memory, "
+    "acting freely and voluntarily, and not under any constraint or undue "
+    "influence. We sign in the Testator's presence and in each other's "
+    "presence. We are not beneficiaries under this Will and are not "
+    "related to the Testator or beneficiary by blood, marriage, or adoption."
+)
+
+NOTARY_ACKNOWLEDGMENT = (
+    "NOTARY ACKNOWLEDGMENT: On this day, before me, a Notary Public duly "
+    "commissioned and authorized, personally appeared the Testator and "
+    "the witnesses, known to me to be the persons whose names are "
+    "subscribed to this instrument, and acknowledged that they executed "
+    "the same for the purposes therein expressed. The Testator appeared "
+    "to be of sound and disposing mind and memory, acting freely and "
+    "voluntarily, and under no constraint, fraud, menace, or undue "
+    "influence. The witnesses appeared to be competent adults of legal "
+    "age, acting freely and voluntarily."
+)
+
+
+# =============================================================================
+#  PDF GENERATION
+# =============================================================================
+
+def get_desktop_path():
+    return os.path.join(os.path.expanduser("~"), "Desktop")
+
+
+def _replace_testator(text, t_name, t_dob):
+    """Replace testator placeholder strings with actual values."""
+    return text.replace(TESTATOR_NAME, t_name).replace(TESTATOR_DOB, t_dob)
+
+
+def generate_will_pdf(signature_name, signature_date, output_path=None,
+                      witness1_name="", witness2_name="",
+                      notary_name="", notary_commission="",
+                      testator_name="", testator_dob="",
+                      regards_note=""):
+    if output_path is None:
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        safe_name = signature_name.replace(" ", "_") if signature_name else "Signed"
+        filename = "Will_of_Death_" + safe_name + "_" + timestamp + ".pdf"
+        output_path = os.path.join(get_desktop_path(), filename)
+
+    doc = SimpleDocTemplate(
+        output_path, pagesize=letter,
+        leftMargin=1.0 * inch, rightMargin=1.0 * inch,
+        topMargin=1.0 * inch, bottomMargin=1.0 * inch,
+        title="Will of Death - Last Will and Testament",
+        author=TESTATOR_NAME,
+    )
+
+    styles = getSampleStyleSheet()
+
+    style_title = ParagraphStyle("WillTitle", parent=styles["Title"],
+        fontSize=22, spaceAfter=4, textColor=HexColor("#1a1a2e"),
+        alignment=TA_CENTER, fontName="Times-Bold")
+    style_subtitle = ParagraphStyle("WillSubtitle", parent=styles["Title"],
+        fontSize=14, spaceAfter=6, textColor=HexColor("#8b0000"),
+        alignment=TA_CENTER, fontName="Times-Bold")
+    style_motto = ParagraphStyle("WillMotto", parent=styles["Normal"],
+        fontSize=10, spaceAfter=12, textColor=HexColor("#555555"),
+        alignment=TA_CENTER, fontName="Times-Italic")
+    style_philosophy = ParagraphStyle("Philosophy", parent=styles["Normal"],
+        fontSize=10, leading=15, spaceBefore=8, spaceAfter=8,
+        alignment=TA_JUSTIFY, fontName="Times-Italic",
+        textColor=HexColor("#333333"))
+    style_article_title = ParagraphStyle("ArticleTitle", parent=styles["Heading2"],
+        fontSize=12, spaceBefore=18, spaceAfter=8,
+        textColor=HexColor("#1a1a2e"), fontName="Times-Bold",
+        alignment=TA_LEFT)
+    style_body = ParagraphStyle("WillBody", parent=styles["Normal"],
+        fontSize=11, leading=16, spaceAfter=8, alignment=TA_JUSTIFY,
+        fontName="Times-Roman", textColor=black)
+    style_sub_item = ParagraphStyle("SubItem", parent=style_body,
+        leftIndent=24, bulletIndent=12, spaceAfter=6)
+    style_body_after = ParagraphStyle("BodyAfter", parent=style_body,
+        spaceBefore=6, spaceAfter=8)
+    style_preamble = ParagraphStyle("Preamble", parent=style_body,
+        fontSize=11, spaceBefore=12, spaceAfter=12, alignment=TA_JUSTIFY)
+    style_closing = ParagraphStyle("Closing", parent=style_body,
+        fontSize=11, spaceBefore=18, spaceAfter=24, alignment=TA_JUSTIFY,
+        fontName="Times-Bold")
+    style_sig_label = ParagraphStyle("SigLabel", parent=style_body,
+        fontSize=10, textColor=HexColor("#555555"),
+        fontName="Times-Italic", spaceAfter=2)
+    style_sig_value = ParagraphStyle("SigValue", parent=style_body,
+        fontSize=12, fontName="Times-Bold",
+        textColor=HexColor("#1a1a2e"), spaceAfter=12)
+    style_sig_line = ParagraphStyle("SigLine", parent=style_body,
+        fontSize=12, fontName="Times-Roman", textColor=black, spaceAfter=2)
+    style_footer = ParagraphStyle("Footer", parent=style_body,
+        fontSize=8, textColor=HexColor("#999999"), alignment=TA_CENTER)
+    style_section_header = ParagraphStyle("SectionHeader", parent=styles["Heading2"],
+        fontSize=13, spaceBefore=20, spaceAfter=10,
+        textColor=HexColor("#8b0000"), fontName="Times-Bold",
+        alignment=TA_CENTER)
+    style_attestation = ParagraphStyle("Attestation", parent=style_body,
+        fontSize=10, leading=14, spaceAfter=10, alignment=TA_JUSTIFY,
+        fontName="Times-Italic", textColor=HexColor("#333333"))
+
+    story = []
+
+    # -- Header --
+    story.append(Spacer(1, 0.3 * inch))
+    story.append(Paragraph(WILL_TITLE, style_title))
+    story.append(Paragraph(WILL_SUBTITLE, style_subtitle))
+    story.append(Paragraph('"' + WILL_MOTTO + '"', style_motto))
+    story.append(HRFlowable(width="100%", thickness=2, color=HexColor("#8b0000")))
+    story.append(Spacer(1, 0.15 * inch))
+
+    # -- Testator info box --
+    t_name_display = testator_name if testator_name else "[TESTATOR NAME]"
+    t_dob_display = testator_dob if testator_dob else "[TESTATOR DOB]"
+    testator_data = [
+        ["Testator:", t_name_display],
+        ["Date of Birth:", t_dob_display],
+        ["Beneficiary:", PRIMARY_BENEFICIARY],
+        ["Beneficiary DOB:", BENEFICIARY_DOB],
+        ["Title Type:", "ALLODIAL -- Absolute, Sovereign, Exempt From All Else"],
+        ["Document Type:", "Last Will and Testament (Will of Death)"],
+    ]
+    info_table = Table(testator_data, colWidths=[1.5 * inch, 4.5 * inch])
+    info_table.setStyle(TableStyle([
+        ("FONTNAME", (0, 0), (0, -1), "Times-Bold"),
+        ("FONTNAME", (1, 0), (1, -1), "Times-Roman"),
+        ("FONTSIZE", (0, 0), (-1, -1), 10),
+        ("TEXTCOLOR", (0, 0), (0, -1), HexColor("#1a1a2e")),
+        ("TEXTCOLOR", (1, 0), (1, -1), black),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("LEFTPADDING", (0, 0), (-1, -1), 8),
+        ("BACKGROUND", (0, 0), (0, -1), HexColor("#f0f0f0")),
+        ("BOX", (0, 0), (-1, -1), 1, HexColor("#cccccc")),
+        ("INNERGRID", (0, 0), (-1, -1), 0.5, HexColor("#dddddd")),
+    ]))
+    story.append(info_table)
+    story.append(Spacer(1, 0.2 * inch))
+
+    # -- Philosophy section --
+    story.append(Paragraph("PREFACE: ON DEATH, LEGACY, AND THE LEFTOVERS OF THE DEAD",
+                           style_section_header))
+    for para in WILL_PHILOSOPHY_PARAGRAPHS:
+        story.append(Paragraph(para, style_philosophy))
+    story.append(Spacer(1, 0.1 * inch))
+    story.append(HRFlowable(width="100%", thickness=1, color=HexColor("#999999")))
+    story.append(Spacer(1, 0.15 * inch))
+
+    # -- Preamble --
+    story.append(Paragraph(_replace_testator(WILL_PREAMBLE, t_name_display, t_dob_display), style_preamble))
+    story.append(Spacer(1, 0.1 * inch))
+
+    # -- Articles --
+    for article in WILL_ARTICLES:
+        elements = [Paragraph(article["title"], style_article_title)]
+        elements.append(Paragraph(_replace_testator(article["body"], t_name_display, t_dob_display), style_body))
+        if "sub_items" in article:
+            for item in article["sub_items"]:
+                elements.append(Paragraph("&bull;&nbsp;&nbsp;" + _replace_testator(item, t_name_display, t_dob_display), style_sub_item))
+        if "body_after" in article:
+            for para in article["body_after"].split("\n\n"):
+                elements.append(Paragraph(_replace_testator(para, t_name_display, t_dob_display).replace("\n", "<br/>"), style_body_after))
+        story.append(KeepTogether(elements))
+        story.append(Spacer(1, 0.05 * inch))
+
+    # -- Closing --
+    story.append(Spacer(1, 0.15 * inch))
+    story.append(HRFlowable(width="100%", thickness=1, color=HexColor("#999999")))
+    story.append(Spacer(1, 0.1 * inch))
+    story.append(Paragraph(_replace_testator(WILL_CLOSING, t_name_display, t_dob_display), style_closing))
+
+    # -- Regards, Note (personal message from testator) --
+    if regards_note and regards_note.strip():
+        story.append(Spacer(1, 0.25 * inch))
+        story.append(Paragraph("REGARDS, NOTE", style_section_header))
+        story.append(HRFlowable(width="40%", thickness=0.5, color=HexColor("#cccccc")))
+        story.append(Spacer(1, 0.1 * inch))
+        for para in regards_note.split("\n"):
+            if para.strip():
+                story.append(Paragraph(para.strip(), style_body))
+        story.append(Spacer(1, 0.1 * inch))
+
+    # -- Testator signature block --
+    story.append(Spacer(1, 0.3 * inch))
+    story.append(Paragraph("TESTATOR SIGNATURE", style_section_header))
+    sig_table_data = [
+        [Paragraph("_______________________________________", style_sig_line),
+         Paragraph("_______________", style_sig_line)],
+        [Paragraph("Testator Signature", style_sig_label),
+         Paragraph("Date", style_sig_label)],
+        [Paragraph(signature_name or "[UNSIGNED]", style_sig_value),
+         Paragraph(signature_date or "[UNSIGNED]", style_sig_value)],
+    ]
+    sig_table = Table(sig_table_data, colWidths=[4.0 * inch, 2.0 * inch])
+    sig_table.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "BOTTOM"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 0),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+    ]))
+    story.append(sig_table)
+
+    # -- Witness section --
+    story.append(Spacer(1, 0.4 * inch))
+    story.append(Paragraph("WITNESS ATTESTATION", style_section_header))
+    story.append(Paragraph(_replace_testator(WITNESS_ATTESTATION, t_name_display, t_dob_display), style_attestation))
+    story.append(Spacer(1, 0.15 * inch))
+
+    w1_display = witness1_name if witness1_name else "________________________"
+    w2_display = witness2_name if witness2_name else "________________________"
+    witness_data = [
+        [Paragraph("_______________________________________", style_sig_line),
+         Paragraph("_______________", style_sig_line)],
+        [Paragraph("Witness 1: " + w1_display, style_sig_label),
+         Paragraph("Date", style_sig_label)],
+        [Spacer(1, 0.2 * inch), Spacer(1, 0.2 * inch)],
+        [Paragraph("_______________________________________", style_sig_line),
+         Paragraph("_______________", style_sig_line)],
+        [Paragraph("Witness 2: " + w2_display, style_sig_label),
+         Paragraph("Date", style_sig_label)],
+    ]
+    witness_table = Table(witness_data, colWidths=[4.0 * inch, 2.0 * inch])
+    witness_table.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "BOTTOM"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 0),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+    ]))
+    story.append(witness_table)
+
+    # -- Notary section --
+    story.append(Spacer(1, 0.4 * inch))
+    story.append(Paragraph("NOTARY ACKNOWLEDGMENT (SELF-PROVING AFFIDAVIT)", style_section_header))
+    story.append(Paragraph(_replace_testator(NOTARY_ACKNOWLEDGMENT, t_name_display, t_dob_display), style_attestation))
+    story.append(Spacer(1, 0.15 * inch))
+
+    notary_display = notary_name if notary_name else "________________________"
+    comm_display = notary_commission if notary_commission else "________________________"
+    notary_data = [
+        [Paragraph("_______________________________________", style_sig_line),
+         Paragraph("_______________", style_sig_line)],
+        [Paragraph("Notary Public: " + notary_display, style_sig_label),
+         Paragraph("Date", style_sig_label)],
+        [Spacer(1, 0.1 * inch), Spacer(1, 0.1 * inch)],
+        [Paragraph("Commission #: " + comm_display, style_sig_label),
+         Paragraph("My Commission Expires: _______________", style_sig_label)],
+        [Spacer(1, 0.15 * inch), Spacer(1, 0.15 * inch)],
+        [Paragraph("[NOTARIAL SEAL]", style_sig_label), Paragraph("", style_sig_label)],
+    ]
+    notary_table = Table(notary_data, colWidths=[4.0 * inch, 2.0 * inch])
+    notary_table.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "BOTTOM"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 0),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+        ("BOX", (0, 5), (0, 5), 1, HexColor("#999999")),
+    ]))
+    story.append(notary_table)
+
+    # -- Footer --
+    story.append(Spacer(1, 0.5 * inch))
+    story.append(HRFlowable(width="60%", thickness=0.5, color=HexColor("#cccccc")))
+    story.append(Spacer(1, 0.05 * inch))
+    footer_text = (
+        "This Will of Death was signed electronically on " + (signature_date or "N/A") + ". "
+        "Testator: " + (testator_name or signature_name or "N/A") + ". "
+        "All property conveyed under allodial title to " + PRIMARY_BENEFICIARY +
+        " (" + BENEFICIARY_DOB + "), exempt from all else. "
+        '"' + WILL_MOTTO + '"'
+    )
+    story.append(Paragraph(footer_text, style_footer))
+
+    def add_page_number(canvas, doc):
+        canvas.saveState()
+        canvas.setFont("Times-Italic", 8)
+        canvas.setFillColor(HexColor("#999999"))
+        canvas.drawCentredString(letter[0] / 2, 0.5 * inch,
+                                 "Will of Death -- Page " + str(doc.page))
+        canvas.restoreState()
+
+    doc.build(story, onFirstPage=add_page_number, onLaterPages=add_page_number)
+    return output_path
+
+
+# =============================================================================
+#  GUI APPLICATION
+# =============================================================================
+
+class WillOfDeathApp:
+
+    C_BG = "#0d1117"
+    C_PANEL = "#161b22"
+    C_PANEL_HI = "#21262d"
+    C_TEXT = "#e6edf3"
+    C_TEXT_DIM = "#8b949e"
+    C_ACCENT = "#da3633"
+    C_ACCENT_DIM = "#6e2323"
+    C_GOLD = "#d4af37"
+    C_GOOD = "#3fb950"
+    C_BORDER = "#30363d"
+    C_SIG_SIGNED = "#238636"
+    C_PHIL = "#a0a0a0"
+
+    def __init__(self):
+        self.root = tk.Tk()
+        self.root.title("Will of Death -- Last Will & Testament")
+        self.root.geometry("950x1050")
+        self.root.minsize(850, 900)
+        self.root.configure(bg=self.C_BG)
+
+        self.signed = False
+        self.signature_name = ""
+        self.signature_date = ""
+        self.saved_pdf_path = ""
+
+        self._setup_styles()
+        self._build_ui()
+
+    def _setup_styles(self):
+        style = ttk.Style()
+        style.theme_use("clam")
+        style.configure("Will.TFrame", background=self.C_BG)
+        style.configure("Panel.TFrame", background=self.C_PANEL)
+
+    def _build_ui(self):
+        main = ttk.Frame(self.root, style="Will.TFrame")
+        main.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
+
+        # ---- Header ----
+        header = ttk.Frame(main, style="Will.TFrame")
+        header.pack(fill=tk.X, pady=(0, 5))
+
+        tk.Label(header, text=WILL_TITLE, bg=self.C_BG, fg=self.C_ACCENT,
+                 font=("Georgia", 26, "bold")).pack()
+        tk.Label(header, text=WILL_SUBTITLE, bg=self.C_BG, fg=self.C_GOLD,
+                 font=("Georgia", 16, "bold")).pack()
+        tk.Label(header, text='"' + WILL_MOTTO + '"', bg=self.C_BG, fg=self.C_TEXT_DIM,
+                 font=("Georgia", 9, "italic"), wraplength=850).pack(pady=(2, 4))
+        tk.Frame(header, bg=self.C_ACCENT, height=2).pack(fill=tk.X, pady=8)
+
+        # ---- Testator info bar ----
+        info_frame = tk.Frame(main, bg=self.C_PANEL, relief=tk.FLAT, bd=0)
+        info_frame.pack(fill=tk.X, pady=(0, 10))
+        tk.Frame(info_frame, bg=self.C_BORDER, height=1).pack(fill=tk.X)
+        info_inner = tk.Frame(info_frame, bg=self.C_PANEL)
+        info_inner.pack(fill=tk.X, padx=12, pady=8)
+
+        tk.Label(info_inner, text="Testator Name:", bg=self.C_PANEL, fg=self.C_GOLD,
+                 font=("Georgia", 9, "bold")).grid(row=0, column=0, sticky=tk.W, padx=(0, 8), pady=2)
+        self.testator_name_var = tk.StringVar()
+        self.testator_name_entry = tk.Entry(info_inner, textvariable=self.testator_name_var,
+                 font=("Georgia", 10), width=30,
+                 bg=self.C_PANEL_HI, fg=self.C_TEXT, insertbackground=self.C_TEXT,
+                 relief=tk.FLAT, bd=2, highlightthickness=1,
+                 highlightbackground=self.C_BORDER, highlightcolor=self.C_GOLD)
+        self.testator_name_entry.grid(row=0, column=1, sticky=tk.W, padx=(0, 12), pady=2)
+        self.testator_name_var.trace_add("write", self._on_testator_info_change)
+
+        tk.Label(info_inner, text="Testator DOB:", bg=self.C_PANEL, fg=self.C_GOLD,
+                 font=("Georgia", 9, "bold")).grid(row=0, column=2, sticky=tk.W, padx=(0, 4), pady=2)
+        self.testator_dob_var = tk.StringVar()
+        self.testator_dob_entry = tk.Entry(info_inner, textvariable=self.testator_dob_var,
+                 font=("Georgia", 10), width=20,
+                 bg=self.C_PANEL_HI, fg=self.C_TEXT, insertbackground=self.C_TEXT,
+                 relief=tk.FLAT, bd=2, highlightthickness=1,
+                 highlightbackground=self.C_BORDER, highlightcolor=self.C_GOLD)
+        self.testator_dob_entry.grid(row=0, column=3, sticky=tk.W, pady=2)
+        self.testator_dob_var.trace_add("write", self._on_testator_info_change)
+
+        static_items = [
+            ("Beneficiary:", PRIMARY_BENEFICIARY),
+            ("Beneficiary DOB:", BENEFICIARY_DOB),
+            ("Title Type:", "ALLODIAL -- Absolute, Sovereign, Exempt From All Else"),
+            ("Document Type:", "Last Will and Testament (Will of Death)"),
+        ]
+        for i, (label, value) in enumerate(static_items):
+            tk.Label(info_inner, text=label, bg=self.C_PANEL, fg=self.C_GOLD,
+                     font=("Georgia", 9, "bold")).grid(row=i + 1, column=0, sticky=tk.W, padx=(0, 8), pady=1)
+            tk.Label(info_inner, text=value, bg=self.C_PANEL, fg=self.C_TEXT,
+                     font=("Georgia", 9)).grid(row=i + 1, column=1, columnspan=3, sticky=tk.W, pady=1)
+        tk.Frame(info_frame, bg=self.C_BORDER, height=1).pack(fill=tk.X)
+
+        # ---- Scrollable will content ----
+        content_frame = tk.Frame(main, bg=self.C_BG)
+        content_frame.pack(fill=tk.BOTH, expand=True, pady=(5, 5))
+
+        self.canvas = tk.Canvas(content_frame, bg=self.C_BG, highlightthickness=0)
+        scrollbar = ttk.Scrollbar(content_frame, orient=tk.VERTICAL,
+                                  command=self.canvas.yview)
+        self.scrollable = tk.Frame(self.canvas, bg=self.C_BG)
+        self.scrollable.bind("<Configure>",
+            lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+        self.canvas_window = self.canvas.create_window((0, 0), window=self.scrollable, anchor="nw")
+        self.canvas.configure(yscrollcommand=scrollbar.set)
+        self.canvas.bind("<Configure>",
+            lambda e: self.canvas.itemconfig(self.canvas_window, width=e.width))
+        self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        self._populate_will_content()
+
+        # ---- Signature panel ----
+        sig_panel = tk.Frame(main, bg=self.C_PANEL, relief=tk.FLAT, bd=0)
+        sig_panel.pack(fill=tk.X, pady=(10, 5))
+        tk.Frame(sig_panel, bg=self.C_BORDER, height=1).pack(fill=tk.X)
+        sig_inner = tk.Frame(sig_panel, bg=self.C_PANEL)
+        sig_inner.pack(fill=tk.X, padx=12, pady=10)
+
+        self.sig_status = tk.Label(
+            sig_inner, text="\u26a0  NOT YET SIGNED",
+            bg=self.C_PANEL, fg=self.C_ACCENT,
+            font=("Georgia", 12, "bold"))
+        self.sig_status.grid(row=0, column=0, columnspan=4, sticky=tk.W, pady=(0, 8))
+
+        tk.Label(sig_inner, text="Testator Signature:", bg=self.C_PANEL, fg=self.C_GOLD,
+                 font=("Georgia", 10, "bold")).grid(row=1, column=0, sticky=tk.W, padx=(0, 4), pady=4)
+        self.sig_entry = tk.Entry(sig_inner, font=("Georgia", 12), width=28,
+                                  bg=self.C_PANEL_HI, fg=self.C_TEXT,
+                                  insertbackground=self.C_TEXT, relief=tk.FLAT, bd=2,
+                                  highlightthickness=1, highlightbackground=self.C_BORDER,
+                                  highlightcolor=self.C_GOLD)
+        self.sig_entry.grid(row=1, column=1, sticky=tk.W, padx=(0, 12), pady=4)
+
+        tk.Label(sig_inner, text="Date:", bg=self.C_PANEL, fg=self.C_GOLD,
+                 font=("Georgia", 10, "bold")).grid(row=1, column=2, sticky=tk.W, padx=(0, 4), pady=4)
+        self.date_var = tk.StringVar(value=datetime.datetime.now().strftime("%B %d, %Y"))
+        tk.Entry(sig_inner, textvariable=self.date_var, font=("Georgia", 12), width=18,
+                 bg=self.C_PANEL_HI, fg=self.C_TEXT, insertbackground=self.C_TEXT,
+                 relief=tk.FLAT, bd=2, highlightthickness=1, highlightbackground=self.C_BORDER,
+                 highlightcolor=self.C_GOLD).grid(row=1, column=3, sticky=tk.W, pady=4)
+
+        # ---- Regards, Note (personal message) ----
+        tk.Label(sig_inner, text="Regards, Note:", bg=self.C_PANEL, fg=self.C_GOLD,
+                 font=("Georgia", 10, "bold")).grid(row=2, column=0, sticky=tk.NW, padx=(0, 4), pady=4)
+        self.regards_note_text = tk.Text(sig_inner, font=("Georgia", 10), width=70, height=4,
+                                         bg=self.C_PANEL_HI, fg=self.C_TEXT,
+                                         insertbackground=self.C_TEXT, relief=tk.FLAT, bd=2,
+                                         highlightthickness=1, highlightbackground=self.C_BORDER,
+                                         highlightcolor=self.C_GOLD, wrap=tk.WORD)
+        self.regards_note_text.grid(row=2, column=1, columnspan=3, sticky=tk.W, padx=(0, 12), pady=4)
+
+        # ---- Notary fields ----
+        tk.Label(sig_inner, text="Notary Public Name:", bg=self.C_PANEL, fg=self.C_TEXT_DIM,
+                 font=("Georgia", 9)).grid(row=3, column=0, sticky=tk.W, padx=(0, 4), pady=4)
+        self.notary_entry = tk.Entry(sig_inner, font=("Georgia", 11), width=28,
+                                     bg=self.C_PANEL_HI, fg=self.C_TEXT,
+                                     insertbackground=self.C_TEXT, relief=tk.FLAT, bd=2,
+                                     highlightthickness=1, highlightbackground=self.C_BORDER,
+                                     highlightcolor=self.C_GOLD)
+        self.notary_entry.grid(row=3, column=1, sticky=tk.W, padx=(0, 12), pady=4)
+
+        tk.Label(sig_inner, text="Notary Commission #:", bg=self.C_PANEL, fg=self.C_TEXT_DIM,
+                 font=("Georgia", 9)).grid(row=3, column=2, sticky=tk.W, padx=(0, 4), pady=4)
+        self.notary_comm_entry = tk.Entry(sig_inner, font=("Georgia", 11), width=18,
+                                          bg=self.C_PANEL_HI, fg=self.C_TEXT,
+                                          insertbackground=self.C_TEXT, relief=tk.FLAT, bd=2,
+                                          highlightthickness=1, highlightbackground=self.C_BORDER,
+                                          highlightcolor=self.C_GOLD)
+        self.notary_comm_entry.grid(row=3, column=3, sticky=tk.W, pady=4)
+
+        # ---- Action buttons ----
+        btn_frame = tk.Frame(main, bg=self.C_BG)
+        btn_frame.pack(fill=tk.X, pady=(8, 5))
+
+        self.sign_btn = tk.Button(
+            btn_frame, text="\u2714  SIGN WILL OF DEATH",
+            font=("Georgia", 14, "bold"), fg=self.C_TEXT, bg=self.C_ACCENT_DIM,
+            activebackground=self.C_ACCENT, activeforeground="white",
+            relief=tk.FLAT, padx=30, pady=12, cursor="hand2",
+            command=self._sign_will)
+        self.sign_btn.pack(side=tk.LEFT, padx=(0, 10))
+
+        self.print_btn = tk.Button(
+            btn_frame, text="\u2399  PRINT WILL",
+            font=("Georgia", 14, "bold"), fg=self.C_TEXT_DIM, bg=self.C_PANEL_HI,
+            activebackground=self.C_PANEL_HI, activeforeground=self.C_TEXT_DIM,
+            relief=tk.FLAT, padx=30, pady=12, state=tk.DISABLED,
+            cursor="arrow", command=self._print_will)
+        self.print_btn.pack(side=tk.LEFT, padx=(0, 10))
+
+        self.save_status = tk.Label(
+            btn_frame, text="", bg=self.C_BG, fg=self.C_GOOD,
+            font=("Georgia", 10, "italic"))
+        self.save_status.pack(side=tk.LEFT, padx=10)
+
+        # ---- Footer ----
+        tk.Label(
+            main,
+            text=('"' + WILL_MOTTO + '"  --  All belongings to ' + PRIMARY_BENEFICIARY +
+                  ' (' + BENEFICIARY_DOB + ') under allodial titles, exempt from all else.'),
+            bg=self.C_BG, fg=self.C_TEXT_DIM, font=("Georgia", 8, "italic"),
+            wraplength=870, justify=tk.CENTER).pack(fill=tk.X, pady=(5, 0))
+
+    def _get_testator_name(self):
+        return self.testator_name_var.get().strip() or "[TESTATOR NAME]"
+
+    def _get_testator_dob(self):
+        return self.testator_dob_var.get().strip() or "[TESTATOR DOB]"
+
+    def _on_testator_info_change(self, *args):
+        if self.signed:
+            return
+        self._refresh_will_content()
+
+    def _refresh_will_content(self):
+        for widget in self.scrollable.winfo_children():
+            widget.destroy()
+        self._populate_will_content()
+
+    def _populate_will_content(self):
+        parent = self.scrollable
+        t_name = self._get_testator_name()
+        t_dob = self._get_testator_dob()
+
+        # Philosophy / Preface
+        self._add_section_header(parent, "PREFACE: ON DEATH, LEGACY, AND THE LEFTOVERS OF THE DEAD")
+        for para in WILL_PHILOSOPHY_PARAGRAPHS:
+            self._add_text_block(parent, para, "philosophy", pady=(4, 6))
+
+        tk.Frame(parent, bg=self.C_BORDER, height=1).pack(fill=tk.X, padx=20, pady=10)
+
+        # Preamble
+        self._add_text_block(parent, _replace_testator(WILL_PREAMBLE, t_name, t_dob), "body", pady=(8, 10))
+
+        # Articles
+        for article in WILL_ARTICLES:
+            self._add_text_block(parent, article["title"], "article", pady=(14, 4))
+            self._add_text_block(parent, _replace_testator(article["body"], t_name, t_dob), "body", pady=(2, 4))
+            if "sub_items" in article:
+                for item in article["sub_items"]:
+                    self._add_bullet(parent, _replace_testator(item, t_name, t_dob), pady=(1, 1))
+            if "body_after" in article:
+                for para in article["body_after"].split("\n\n"):
+                    self._add_text_block(parent, _replace_testator(para, t_name, t_dob), "body", pady=(4, 6))
+
+        tk.Frame(parent, bg=self.C_BORDER, height=1).pack(fill=tk.X, padx=20, pady=12)
+
+        # Closing
+        self._add_text_block(parent, _replace_testator(WILL_CLOSING, t_name, t_dob), "closing", pady=(4, 10))
+
+    def _add_section_header(self, parent, text, pady=(10, 6)):
+        tk.Label(parent, text=text, bg=self.C_BG, fg=self.C_ACCENT,
+                 font=("Georgia", 13, "bold"), wraplength=820,
+                 justify=tk.CENTER).pack(fill=tk.X, padx=20, pady=pady, anchor="center")
+        tk.Frame(parent, bg=self.C_ACCENT_DIM, height=1).pack(fill=tk.X, padx=40, pady=(0, 6))
+
+    def _add_text_block(self, parent, text, style_type, pady=(4, 4)):
+        if style_type == "article":
+            fg, font = self.C_GOLD, ("Georgia", 12, "bold")
+        elif style_type == "philosophy":
+            fg, font = self.C_PHIL, ("Georgia", 10, "italic")
+        elif style_type == "closing":
+            fg, font = self.C_TEXT, ("Georgia", 11, "bold")
+        else:
+            fg, font = self.C_TEXT, ("Georgia", 10)
+
+        tk.Label(parent, text=text, bg=self.C_BG, fg=fg, font=font,
+                 wraplength=830, justify=tk.LEFT, anchor="w"
+                 ).pack(fill=tk.X, padx=20, pady=pady, anchor="w")
+
+    def _add_bullet(self, parent, text, pady=(1, 1)):
+        tk.Label(parent, text="  \u2022  " + text, bg=self.C_BG, fg=self.C_TEXT,
+                 font=("Georgia", 10), wraplength=790, justify=tk.LEFT, anchor="w"
+                 ).pack(fill=tk.X, padx=40, pady=pady, anchor="w")
+
+    def _on_mousewheel(self, event):
+        self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
+    def _sign_will(self):
+        name = self.sig_entry.get().strip()
+        if not name:
+            messagebox.showwarning("Signature Required",
+                "Please enter the testator signature name before signing the Will of Death.",
+                parent=self.root)
+            return
+
+        t_name = self.testator_name_var.get().strip()
+        if not t_name:
+            messagebox.showwarning("Testator Name Required",
+                "Please enter the Testator's name in the info bar above before signing.",
+                parent=self.root)
+            return
+
+        t_dob = self.testator_dob_var.get().strip()
+        if not t_dob:
+            messagebox.showwarning("Testator DOB Required",
+                "Please enter the Testator's date of birth in the info bar above before signing.",
+                parent=self.root)
+            return
+
+        date_str = self.date_var.get().strip()
+        if not date_str:
+            date_str = datetime.datetime.now().strftime("%B %d, %Y")
+
+        notary = self.notary_entry.get().strip()
+        notary_comm = self.notary_comm_entry.get().strip()
+        regards_note = self.regards_note_text.get("1.0", tk.END).strip()
+
+        self.signature_name = name
+        self.signature_date = date_str
+        self.signed = True
+
+        try:
+            pdf_path = generate_will_pdf(name, date_str,
+                                         notary_name=notary, notary_commission=notary_comm,
+                                         testator_name=t_name, testator_dob=t_dob,
+                                         regards_note=regards_note)
+            self.saved_pdf_path = pdf_path
+        except Exception as e:
+            messagebox.showerror("PDF Generation Error",
+                "Failed to generate the Will of Death PDF:\n" + str(e),
+                parent=self.root)
+            return
+
+        self.sig_status.config(text="\u2714  SIGNED by " + name + " on " + date_str, fg=self.C_GOOD)
+        self.sign_btn.config(text="\u2714  SIGNED", state=tk.DISABLED,
+                             bg=self.C_SIG_SIGNED, fg="white", activebackground=self.C_SIG_SIGNED)
+        self.print_btn.config(state=tk.NORMAL, fg=self.C_TEXT, bg=self.C_ACCENT_DIM,
+                              activebackground=self.C_ACCENT, activeforeground="white", cursor="hand2")
+
+        filename = os.path.basename(pdf_path)
+        self.save_status.config(text="\u2714 Saved to Desktop: " + filename)
+
+        try:
+            os.startfile(pdf_path)
+        except Exception:
+            pass
+
+        messagebox.showinfo("Will of Death -- Signed",
+            ("The Will of Death has been signed by " + name + " on " + date_str + ".\n\n"
+             "All property is left to " + PRIMARY_BENEFICIARY + " under allodial title.\n\n"
+             "A signed PDF has been automatically saved to your Desktop:\n" + filename + "\n\n"
+             "You can now print the Will using the Print button."),
+            parent=self.root)
+
+    def _print_will(self):
+        if not self.saved_pdf_path or not os.path.exists(self.saved_pdf_path):
+            messagebox.showwarning("No Signed Will",
+                "Please sign the Will of Death first. The PDF will be generated "
+                "and saved to your Desktop upon signing.",
+                parent=self.root)
+            return
+        try:
+            os.startfile(self.saved_pdf_path)
+        except Exception as e:
+            messagebox.showerror("Print Error",
+                "Could not open the PDF for printing:\n" + str(e) + "\n\n"
+                "The file is located at:\n" + self.saved_pdf_path,
+                parent=self.root)
+
+    def run(self):
+        self.root.mainloop()
+
+
+# =============================================================================
+#  MAIN ENTRY POINT
+# =============================================================================
+
+def main():
+    app = WillOfDeathApp()
+    app.run()
+
+
+if __name__ == "__main__":
+    main()
